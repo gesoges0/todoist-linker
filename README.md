@@ -2,6 +2,8 @@
 
 A lightweight Chrome extension that lets you add tasks to Todoist directly from any webpage. Built with Manifest V3 for modern Chrome browsers.
 
+<img width="397" height="505" alt="Screenshot from 2025-07-15 02-07-36" src="https://github.com/user-attachments/assets/40e11f82-3063-4ab7-b3ba-df1062d1f773" />
+
 ## Features
 
 - **Quick Task Creation** - Add tasks with title, description, due date, and priority
