@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Todoist Task Adder",
+  "version": "1.0",
+  "description": "Chrome拡張でTodoistにタスクを追加",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.todoist.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Todoistにタスクを追加"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
