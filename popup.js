@@ -71,19 +71,20 @@ function setupEventListeners() {
 async function loadProjects() {
   try {
     const token = await getApiToken();
-    const response = await fetch('https://api.todoist.com/rest/v2/projects', {
+    const response = await fetch('https://api.todoist.com/api/v1/projects', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
     if (response.ok) {
-      const projects = await response.json();
+      const data = await response.json();
+      const projects = data.results ?? data;
       const projectSelect = document.getElementById('projectSelect');
-      
+
       // 既存のオプションをクリア（受信トレイ以外）
       projectSelect.innerHTML = '<option value="">受信トレイ</option>';
-      
+
       projects.forEach(project => {
         const option = document.createElement('option');
         option.value = project.id;
@@ -127,7 +128,7 @@ async function addTask() {
       taskData.project_id = projectId;
     }
 
-    const response = await fetch('https://api.todoist.com/rest/v2/tasks', {
+    const response = await fetch('https://api.todoist.com/api/v1/tasks', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
