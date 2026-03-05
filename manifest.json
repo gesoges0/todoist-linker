@@ -5,7 +5,8 @@
   "description": "Chrome拡張でTodoistにタスクを追加",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://api.todoist.com/*"

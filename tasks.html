@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Todoist - タスク一覧</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fff;
+      color: #202020;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #fafafa;
+      border-right: 1px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 12px 0;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px 16px;
+    }
+
+    .sidebar-brand .logo {
+      width: 28px;
+      height: 28px;
+      background: #db4035;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .sidebar-brand span {
+      font-size: 16px;
+      font-weight: 700;
+      color: #202020;
+    }
+
+    .nav-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 14px 18px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 18px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 1px 8px;
+      font-size: 14px;
+      color: #333;
+      transition: background 0.12s;
+      user-select: none;
+    }
+
+    .nav-item:hover { background: #efefef; }
+
+    .nav-item.active {
+      background: #fce9e8;
+      color: #db4035;
+      font-weight: 600;
+    }
+
+    .nav-item.active .nav-icon { color: #db4035; }
+
+    .nav-icon {
+      font-size: 16px;
+      width: 18px;
+      text-align: center;
+      color: #888;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 12px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .nav-item.active .nav-badge { color: #db4035; }
+
+    .project-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Main ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #main-header {
+      padding: 28px 40px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    #view-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #202020;
+    }
+
+    #task-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 40px 40px;
+    }
+
+    /* ── Task Item ── */
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.1s;
+    }
+
+    .task-item:hover { background: #fafafa; margin: 0 -40px; padding: 10px 40px; }
+
+    .task-checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .task-checkbox:hover::after {
+      content: '✓';
+      font-size: 10px;
+      color: #fff;
+    }
+
+    .task-checkbox.completing {
+      opacity: 0.4;
+    }
+
+    .priority-1 { border-color: #d1453b; }
+    .priority-1:hover { background: #d1453b; }
+    .priority-2 { border-color: #eb8909; }
+    .priority-2:hover { background: #eb8909; }
+    .priority-3 { border-color: #246fe0; }
+    .priority-3:hover { background: #246fe0; }
+    .priority-4 { border-color: #ccc; }
+    .priority-4:hover { background: #ccc; }
+
+    .task-body { flex: 1; min-width: 0; }
+
+    .task-content {
+      font-size: 14px;
+      color: #202020;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .task-description {
+      font-size: 13px;
+      color: #999;
+      margin-top: 2px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .task-due {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .task-due.overdue { color: #d1453b; }
+    .task-due.today { color: #058527; }
+    .task-due.future { color: #888; }
+
+    .task-project {
+      font-size: 12px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ── States ── */
+    .state-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: #aaa;
+      gap: 12px;
+    }
+
+    .state-container .state-icon { font-size: 40px; }
+    .state-container .state-text { font-size: 14px; }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f0f0f0;
+      border-top-color: #db4035;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">T</div>
+    <span>Todoist</span>
+  </div>
+
+  <nav id="nav-fixed">
+    <div class="nav-item active" data-view="inbox">
+      <span class="nav-icon">📥</span>
+      <span>受信トレイ</span>
+      <span class="nav-badge" id="badge-inbox"></span>
+    </div>
+    <div class="nav-item" data-view="today">
+      <span class="nav-icon">📅</span>
+      <span>今日</span>
+      <span class="nav-badge" id="badge-today"></span>
+    </div>
+    <div class="nav-item" data-view="all">
+      <span class="nav-icon">✅</span>
+      <span>すべてのタスク</span>
+      <span class="nav-badge" id="badge-all"></span>
+    </div>
+  </nav>
+
+  <div class="nav-section-label">プロジェクト</div>
+  <nav id="nav-projects"></nav>
+</aside>
+
+<main id="main">
+  <div id="main-header">
+    <div id="view-title">受信トレイ</div>
+  </div>
+  <div id="task-list-container">
+    <div class="state-container">
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script src="tasks.js"></script>
+</body>
+</html>

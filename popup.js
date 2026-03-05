@@ -31,6 +31,11 @@ function showTaskForm() {
 }
 
 function setupEventListeners() {
+  // タスク一覧を別タブで開く
+  document.getElementById('openTaskList').addEventListener('click', function() {
+    chrome.tabs.create({ url: chrome.runtime.getURL('tasks.html') });
+  });
+
   // APIトークン保存
   document.getElementById('saveToken').addEventListener('click', async function() {
     const token = document.getElementById('apiToken').value.trim();
