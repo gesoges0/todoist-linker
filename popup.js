@@ -60,6 +60,12 @@ function setupEventListeners() {
   // フォームクリア
   document.getElementById('clearForm').addEventListener('click', clearForm);
 
+  // トークン再登録
+  document.getElementById('resetToken').addEventListener('click', async function() {
+    await chrome.storage.local.remove('todoistApiToken');
+    showSetup();
+  });
+
   // Enterキーでタスク追加
   document.getElementById('taskTitle').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
