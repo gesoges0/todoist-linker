@@ -116,6 +116,7 @@ function renderView() {
         <div class="state-icon">🎉</div>
         <div class="state-text">タスクはありません</div>
       </div>`;
+    injectAddTaskForm();
     return;
   }
 
@@ -125,6 +126,8 @@ function renderView() {
   container.querySelectorAll('.task-checkbox').forEach(el => {
     el.addEventListener('click', () => completeTask(el.dataset.id));
   });
+
+  injectAddTaskForm();
 }
 
 function renderTask(task, today) {
@@ -230,6 +233,116 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ── Add Task Form ──────────────────────────────────────
+
+function injectAddTaskForm() {
+  const container = document.getElementById('task-list-container');
+
+  // state-container (empty/loading) のときはフォームを追加しない
+  if (container.querySelector('.state-container')) return;
+
+  const tmpl = document.getElementById('add-task-template');
+  const clone = tmpl.content.cloneNode(true);
+  container.appendChild(clone);
+
+  // プロジェクト一覧をセレクトに反映
+  const select = container.querySelector('#form-project');
+  allProjects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (p.is_inbox_project) opt.defaultSelected = false;
+    select.appendChild(opt);
+  });
+
+  // 現在のビューがプロジェクトなら初期選択
+  if (currentView !== 'inbox' && currentView !== 'today' && currentView !== 'all') {
+    select.value = currentView;
+  }
+
+  // 優先度チップ
+  container.querySelectorAll('.p-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      container.querySelectorAll('.p-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+
+  // フォーム開閉
+  const btn  = container.querySelector('#add-task-btn');
+  const form = container.querySelector('#add-task-form');
+  const titleInput = container.querySelector('#form-title');
+
+  btn.addEventListener('click', () => {
+    form.classList.add('open');
+    btn.style.display = 'none';
+    titleInput.focus();
+  });
+
+  container.querySelector('#form-cancel').addEventListener('click', closeForm);
+
+  // Escape で閉じる
+  titleInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeForm();
+  });
+
+  container.querySelector('#form-submit').addEventListener('click', submitTask);
+
+  function closeForm() {
+    form.classList.remove('open');
+    btn.style.display = '';
+    titleInput.value = '';
+    container.querySelector('#form-description').value = '';
+    container.querySelector('#form-due').value = '';
+    container.querySelectorAll('.p-chip').forEach(c => c.classList.remove('selected'));
+    container.querySelector('.p-chip[data-p="1"]').classList.add('selected');
+  }
+
+  async function submitTask() {
+    const title = titleInput.value.trim();
+    if (!title) { titleInput.focus(); return; }
+
+    const submitBtn = container.querySelector('#form-submit');
+    submitBtn.disabled = true;
+
+    const priority = parseInt(container.querySelector('.p-chip.selected').dataset.p);
+    const dueDate  = container.querySelector('#form-due').value;
+    const projectId = select.value;
+
+    const token = await getApiToken();
+    const body = { content: title, priority };
+
+    const desc = container.querySelector('#form-description').value.trim();
+    if (desc)      body.description = desc;
+    if (dueDate)   body.due_date    = dueDate;
+    if (projectId) body.project_id  = projectId;
+
+    try {
+      const res = await fetch(`${API_BASE}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(res.status);
+
+      const newTask = await res.json();
+      allTasks.push(newTask);
+      updateBadges();
+      renderProjectNav();
+      renderView();  // フォームも再描画される
+      showToast('タスクを追加しました');
+    } catch (e) {
+      showToast('タスクの追加に失敗しました');
+      console.error(e);
+      submitBtn.disabled = false;
+    }
+  }
 }
 
 // ── Events ────────────────────────────────────────────

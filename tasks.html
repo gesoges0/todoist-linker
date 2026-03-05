@@ -250,6 +250,175 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Add Task Form ── */
+    #add-task-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 4px;
+      cursor: pointer;
+      color: #aaa;
+      font-size: 14px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: color 0.15s;
+      margin-top: 4px;
+    }
+
+    #add-task-btn:hover { color: #db4035; }
+    #add-task-btn:hover .add-task-icon { color: #db4035; }
+
+    .add-task-icon {
+      font-size: 18px;
+      font-weight: 300;
+      color: #ccc;
+      transition: color 0.15s;
+    }
+
+    #add-task-form {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 8px;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    #add-task-form.open { display: block; }
+
+    #form-title {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #202020;
+      font-family: inherit;
+      margin-bottom: 6px;
+    }
+
+    #form-title::placeholder { color: #ccc; font-weight: 400; }
+
+    #form-description {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: #555;
+      font-family: inherit;
+      resize: none;
+      min-height: 36px;
+      line-height: 1.5;
+    }
+
+    #form-description::placeholder { color: #ccc; }
+
+    .form-divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 10px 0;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .form-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #555;
+      cursor: pointer;
+      background: #fff;
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .form-chip:hover { border-color: #bbb; background: #fafafa; }
+
+    .form-chip select,
+    .form-chip input[type="date"] {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12px;
+      color: #555;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .priority-chips { display: flex; gap: 4px; }
+
+    .p-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 2px solid;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      transition: background 0.15s;
+    }
+
+    .p-chip[data-p="4"] { border-color: #d1453b; color: #d1453b; }
+    .p-chip[data-p="3"] { border-color: #eb8909; color: #eb8909; }
+    .p-chip[data-p="2"] { border-color: #246fe0; color: #246fe0; }
+    .p-chip[data-p="1"] { border-color: #ccc;    color: #aaa; }
+
+    .p-chip.selected[data-p="4"] { background: #d1453b; color: #fff; }
+    .p-chip.selected[data-p="3"] { background: #eb8909; color: #fff; }
+    .p-chip.selected[data-p="2"] { background: #246fe0; color: #fff; }
+    .p-chip.selected[data-p="1"] { background: #ccc;    color: #fff; }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      padding: 7px 16px;
+      background: #db4035;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: #c0392b; }
+    .btn-primary:disabled { background: #e8a09b; cursor: not-allowed; }
+
+    .btn-cancel {
+      padding: 7px 14px;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-cancel:hover { background: #f0f0f0; }
+
     /* ── Toast ── */
     #toast {
       position: fixed;
@@ -315,6 +484,37 @@
 </main>
 
 <div id="toast"></div>
+
+<!-- Add Task Form (hidden, cloned into task list) -->
+<template id="add-task-template">
+  <button id="add-task-btn">
+    <span class="add-task-icon">+</span>
+    <span>タスクを追加</span>
+  </button>
+  <div id="add-task-form">
+    <input id="form-title" type="text" placeholder="タスク名" autocomplete="off">
+    <textarea id="form-description" placeholder="説明（オプション）" rows="2"></textarea>
+    <hr class="form-divider">
+    <div class="form-row">
+      <div class="form-chip">
+        📅 <input id="form-due" type="date">
+      </div>
+      <div class="priority-chips">
+        <div class="p-chip" data-p="4" title="優先度1（最高）">P1</div>
+        <div class="p-chip" data-p="3" title="優先度2">P2</div>
+        <div class="p-chip" data-p="2" title="優先度3">P3</div>
+        <div class="p-chip selected" data-p="1" title="優先度4（通常）">P4</div>
+      </div>
+      <div class="form-chip">
+        📁 <select id="form-project"><option value="">受信トレイ</option></select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button id="form-submit" class="btn-primary">タスクを追加</button>
+      <button id="form-cancel" class="btn-cancel">キャンセル</button>
+    </div>
+  </div>
+</template>
 
 <script src="tasks.js"></script>
 </body>
